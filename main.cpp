@@ -2,18 +2,22 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <signal.h>
-#include <pthread.h>
+#include <thread>
+#include <future>
 #include <iostream>
 #include <unistd.h>
 #include <string.h>
 #include <sstream>
+#include <vector>
 
 using namespace std;
 
-void *connection_handler(void *);
+void connection_handler(int socket_desc,promise<bool>* promObj);
 
 int main() {
     signal(SIGPIPE, SIG_IGN);
+    vector <future<bool>> vec_future;
+    vector <thread> vec_thread;
     int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (sock_fd < 0) {
         perror("socket() error");
@@ -35,26 +39,49 @@ int main() {
         perror("listen() error");
         return -1;
     }
-    pthread_t thread_id;
 
     cout << "Will accept..." << endl;
     int conn_fd;
-    while((conn_fd = accept(sock_fd, 0, 0)))
+    while(true)
     {
-        pthread_create(&thread_id, NULL,connection_handler,(void*)&conn_fd);
-    }
-    if (conn_fd < 0) {
-        printf("Fehler bei accept() ...\n");
+        conn_fd = accept(sock_fd, 0, 0);
+        if (conn_fd < 0) {
+            printf("Fehler bei accept() ...\n");
             exit(EXIT_FAILURE);
+        } else
+        {
+            promise<bool> promObj;
+            future<bool> futObj = promObj.get_future();
+            thread th(connection_handler,conn_fd,&promObj);
+            vec_future.push_back(futObj);
+            vec_thread.push_back(th);
+        }
+        int vecSize = vec_future.size();
+        for(int i=0;i<vecSize;i++)
+        {
+            auto status = vec_future[i].wait_for(0ms);
+            if (status == std::future_status::ready) {
+                vec_thread[i].join;
+                vec_thread[i].delete();
+                vec_future[i].delete();
+                vecSize--;
+            }
+            else
+                i++;
+
+        }
     }
+
 
     return 0;
 }
 
-void *connection_handler(void *socket_desc) {
+void connection_handler(int socket_desc,promise<bool>* promObj) {
 
-    int clientfd = *((int *)socket_desc);
-    pthread_detach (pthread_self ());
+    int clientfd = socket_desc;
+
+    string User = "ERROR_USER";
+    vector<char*> MSG;
 
     char buffer[1024];
     memset(buffer,0,sizeof(char)*1024);
@@ -66,8 +93,9 @@ void *connection_handler(void *socket_desc) {
     timeout.tv_sec = 30;
     timeout.tv_usec = 0;
 
-    while(strcmp(buffer,"QUIT")!=0)
+    while(strcmp(buffer,"QUIT\n")!=0)
     {
+        MSG.clear();
         int ret = select(clientfd+1,&read_fd,NULL,NULL,&timeout);
         if(ret > 0)
         {
@@ -76,16 +104,24 @@ void *connection_handler(void *socket_desc) {
                 int ret = recv(clientfd,buffer,1023,0);
                 buffer[1023] = '\0';
                 cout << buffer << endl;
-                ret = send(clientfd, "OK\n", 3,0);
-                if(ret < 0)
+
+                char* chars_array = strtok(buffer, "\n");
+                while(chars_array)
                 {
-                    stringstream buf;
-                    buf << "Sending msg failed: " << strerror(errno);
-                    throw runtime_error(buf.str().c_str());
+                    MSG.push_back(chars_array);
+                    chars_array = strtok(NULL, "\n");
+                }
+                if(strcmp(MSG[0],"QUIT")==0)
+                {
+
                 }
             }
         }
     }
     close(clientfd);
-    return NULL;
+}
+
+bool loginLDAP(string user,string pw)
+{
+
 }
