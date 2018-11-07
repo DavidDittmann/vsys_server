@@ -1,7 +1,6 @@
 *.cbp
 *.depend
 *.layout
-/bin
 /Mails
 /obj
 /binMake
