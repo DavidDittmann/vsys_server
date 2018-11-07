@@ -12,11 +12,11 @@ all: Server
 
 Server: main.cpp 
 	echo "compiling test: main.cpp..."
-	${CC} ${CFLAGS} binMake/Server *.cpp -lldap -llber -pthread
+	${CC} ${CFLAGS} bin/Server *.cpp -lldap -llber -pthread
 
 
 clean:
 	echo "cleaning binaries..."
 	#rm -rf bin
-	rm -f binMake/Server
+	rm -f bin/Server
 
