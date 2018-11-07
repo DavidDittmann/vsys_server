@@ -11,6 +11,8 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <algorithm>
+#include <mutex>
+#include <thread>
 
 using namespace std;
 
@@ -20,3 +22,5 @@ string readMail(string path, string user, int mailNumber);
 vector<string> getMailsSorted(string path,string user);
 vector <string> listMails(string path,string user);
 static string createHash(string i_str);
+bool isBanned(string poolPath, string userIP);
+void banIP(string poolPath, string userIP);

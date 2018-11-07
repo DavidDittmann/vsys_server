@@ -20,10 +20,10 @@ class serverController{
         serverController(int portArg, string pathArg);
         ~serverController();
         void run();
-        void checkThReady();
+        //void checkThReady();
     private:
-        vector <future<bool>> vec_future;
-        vector <thread> vec_thread;
+        //vector <future<bool>> vec_future;
+        //vector <thread> vec_thread;
         int sock_fd;
         struct sockaddr_in sa;
         int port;
@@ -33,7 +33,8 @@ class serverController{
 
 bool loginUser(string user,string pw,int client_fd);
 
-void connectionHandler(int socket_desc,string path,promise<bool>* promObj);
+//void connectionHandler(int socket_desc,string path,promise<bool>* promObj);
+void connectionHandler(int socket_desc,string path,struct sockaddr_in sa);
 void sendData(string msg, int client_fd);
 string recvData(int client_fd);
 timeval resetSelect(int &clientfd,fd_set &read_fd);

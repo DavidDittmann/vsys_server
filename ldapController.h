@@ -7,6 +7,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+//LDAP_DEPRECATED auf 1 setzen, war notwendig, damit der compiler die
+//deprecated Funktionen akzeptiert
 #define LDAP_DEPRECATED 1
 #include <ldap.h>
 

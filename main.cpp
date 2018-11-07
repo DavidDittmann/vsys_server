@@ -4,22 +4,35 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
 
+    //Zum Start des Servers ist zwigend die Angabe eines Mailpool verzeichnisses und eines Ports notwendig
+    //Zurzeit nur eine einfaches Mailpoolverzeichnis möglich (bestehende Ordner oder max 1 Unterordner)
     if(argc!=3)
-        cout<< "Server <port> <path to mails>";
+        cout<< "Usage: ./Server <port> <path to mails>";
     else
     {
-        int port = stoi(argv[1]);
+        //strtol, da stoi nicht exception save ist
+        long port = strtol(argv[1],NULL,10);
+        if(port > 65535 || port < 1024)
+        {
+            cout << "Usage: ./Server <port> <path to mails>" << endl;
+            cout << "Port musst be greater than 1024 and smaller than 65535" << endl;
+            return 0;
+        }
         string path = argv[2];
 
-        serverController* Server = new serverController(port,path);
+        //initiallisieren des Servers
+        int p = (int)port;
+        serverController Server(p,path);
 
+        //start des Servers
         try{
-            Server->run();
+            Server.run();
         }
         catch(...)
         {
-            Server->~serverController();
+            cout << "!!!ERROR!!!" << endl;
         }
+
     }
     return 0;
 }
